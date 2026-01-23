@@ -1,0 +1,56 @@
+# Cline Rules for Image Compressor Project
+
+## Memory Bank Protocol
+
+### On Session Start
+1. **Always read all Memory Bank files first:**
+   - `memory-bank/projectbrief.md` - Core requirements and constraints
+   - `memory-bank/productContext.md` - Why and how the product works
+   - `memory-bank/systemPatterns.md` - Architecture and component patterns
+   - `memory-bank/techContext.md` - Tech stack and dependencies
+   - `memory-bank/activeContext.md` - Current focus and recent changes
+   - `memory-bank/progress.md` - What's done and what's remaining
+
+2. **Understand the context before making changes**
+
+### On Session End (or Significant Changes)
+Update the Memory Bank when:
+- Adding new components or features
+- Changing architecture or patterns
+- Completing major milestones
+- Making decisions that affect future development
+
+Files to update:
+- `activeContext.md` - Always update with current focus
+- `progress.md` - Update completion status and session log
+- `systemPatterns.md` - If new patterns were introduced
+
+## Project Guidelines
+
+### Tech Stack
+- React 18 + Vite 6
+- Tailwind CSS 3 (utility classes only, no custom CSS)
+- browser-image-compression library
+- JSZip + FileSaver for downloads
+
+### Architecture
+- Functional components with hooks
+- Custom hooks for shared logic (see `useImages.js`)
+- Utils folder for pure functions
+- All processing is client-side (Canvas API + Web Workers)
+
+### Code Style
+- Prefer Tailwind utility classes over custom CSS
+- Use semantic HTML where possible
+- Keep components focused and single-purpose
+- Document complex logic with comments
+
+### GitHub
+- Repository: https://github.com/parth2844/image-compressor
+- Branch: main
+- Commit messages should be descriptive
+
+## Key Constraints
+- **No backend** - GitHub Pages static hosting only
+- **Privacy first** - Files never leave the browser
+- **Free forever** - No paid services or APIs

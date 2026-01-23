@@ -36,23 +36,37 @@ Root component managing global state and layout.
 - Validates file types (image/*)
 - Emits files to parent
 
-### CompressionPanel
+### CompressionControls
 - Quality slider (1-100)
 - Format selector (JPEG/WebP)
-- Max dimension inputs
 - "Compress All" button
-- "Download ZIP" button
+- "Download ZIP" button (shows when multiple compressed)
 
-### ImageGrid
-- Displays uploaded images as cards
-- Each card shows:
-  - Thumbnail preview
-  - Original filename
-  - Original size
-  - Compressed size (after compression)
-  - Savings percentage
-  - Individual download button
-  - Remove button
+### ImageCard
+- Individual image preview card
+- Shows: thumbnail, filename, original/compressed size
+- Savings percentage badge
+- Individual download button
+- Remove button
+
+### HowItWorks (Collapsible)
+- Click to expand/collapse
+- 3-step process explanation
+- Technical note at bottom
+- Pattern: starts collapsed, user-initiated reveal
+
+### FeatureCards (Empty State Only)
+- Displays when no images uploaded
+- 3 cards: Private, Fast, No Limits
+- Disappears when images added
+- Pattern: empty state value proposition
+
+### PrivacyNotice (Expandable)
+- Always visible in sidebar
+- "Learn why" expands detailed explanation
+- Visual comparison (other tools vs this tool)
+- Non-technical analogies (Word vs Google Docs)
+- Pattern: progressive disclosure
 
 ## State Management
 
