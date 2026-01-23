@@ -4,6 +4,7 @@ import ImageCard from './components/ImageCard';
 import CompressionControls from './components/CompressionControls';
 import HowItWorks from './components/HowItWorks';
 import FeatureCards from './components/FeatureCards';
+import PrivacyNotice from './components/PrivacyNotice';
 import { useImages } from './hooks/useImages';
 
 export default function App() {
@@ -72,18 +73,8 @@ export default function App() {
             {/* How It Works - Collapsible */}
             <HowItWorks />
 
-            {/* Privacy Notice */}
-            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-              <div className="flex items-start gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-                </svg>
-                <div>
-                  <p className="text-sm font-medium text-green-800">Your images never leave your browser</p>
-                  <p className="text-xs text-green-600 mt-0.5">All processing happens locally on your device.</p>
-                </div>
-              </div>
-            </div>
+            {/* Privacy Notice with expandable explanation */}
+            <PrivacyNotice />
           </div>
 
           {/* Right Column - Image Grid or Feature Cards */}
