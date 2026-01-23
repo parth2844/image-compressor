@@ -2,6 +2,8 @@ import { useState } from 'react';
 import DropZone from './components/DropZone';
 import ImageCard from './components/ImageCard';
 import CompressionControls from './components/CompressionControls';
+import HowItWorks from './components/HowItWorks';
+import FeatureCards from './components/FeatureCards';
 import { useImages } from './hooks/useImages';
 
 export default function App() {
@@ -67,6 +69,9 @@ export default function App() {
               />
             )}
 
+            {/* How It Works - Collapsible */}
+            <HowItWorks />
+
             {/* Privacy Notice */}
             <div className="bg-green-50 border border-green-200 rounded-lg p-3">
               <div className="flex items-start gap-2">
@@ -81,11 +86,14 @@ export default function App() {
             </div>
           </div>
 
-          {/* Right Column - Image Grid */}
+          {/* Right Column - Image Grid or Feature Cards */}
           <div className="lg:col-span-2">
             {images.length === 0 ? (
-              <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-                <p className="text-gray-500">No images yet. Drop some images to get started!</p>
+              <div className="space-y-6">
+                <FeatureCards />
+                <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
+                  <p className="text-gray-500">Drop some images to get started!</p>
+                </div>
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -105,8 +113,23 @@ export default function App() {
 
       {/* Footer */}
       <footer className="border-t border-gray-200 mt-12">
-        <div className="max-w-5xl mx-auto px-4 py-4 text-center text-sm text-gray-500">
-          <p>Open source • <a href="https://github.com" className="text-blue-600 hover:underline">View on GitHub</a></p>
+        <div className="max-w-5xl mx-auto px-4 py-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-gray-500">
+            <p>
+              Open source •{' '}
+              <a 
+                href="https://github.com/parth2844/image-compressor" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                View on GitHub
+              </a>
+            </p>
+            <p className="text-xs text-gray-400">
+              Built with React, Vite & Canvas API
+            </p>
+          </div>
         </div>
       </footer>
     </div>
