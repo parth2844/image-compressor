@@ -1,5 +1,69 @@
 import { useState, useEffect } from 'react';
 
+// Preset configurations
+const PRESETS = [
+  {
+    id: 'us-passport',
+    name: 'US Passport/Visa',
+    emoji: '🇺🇸',
+    mode: 'targetSize',
+    targetSizeKB: 240,
+    maxWidth: 600,
+    maxHeight: 600,
+    lockAspectRatio: false,
+  },
+  {
+    id: 'india-passport',
+    name: 'Indian Passport/Visa',
+    emoji: '🇮🇳',
+    mode: 'targetSize',
+    targetSizeKB: 50,
+    maxWidth: 600,
+    maxHeight: 600,
+    lockAspectRatio: false,
+  },
+  {
+    id: 'email',
+    name: 'Email Attachment',
+    emoji: '📧',
+    mode: 'targetSize',
+    targetSizeKB: 1024,
+    maxWidth: 1920,
+    maxHeight: null,
+    lockAspectRatio: true,
+  },
+  {
+    id: 'web',
+    name: 'Web/Blog',
+    emoji: '🌐',
+    mode: 'targetSize',
+    targetSizeKB: 200,
+    maxWidth: 1600,
+    maxHeight: null,
+    lockAspectRatio: true,
+  },
+  {
+    id: 'form',
+    name: 'Form Upload',
+    emoji: '📄',
+    mode: 'targetSize',
+    targetSizeKB: 100,
+    maxWidth: null,
+    maxHeight: null,
+    lockAspectRatio: true,
+  },
+  {
+    id: 'thumbnail',
+    name: 'Thumbnail',
+    emoji: '🖼️',
+    mode: 'targetSize',
+    targetSizeKB: 50,
+    maxWidth: 300,
+    maxHeight: 300,
+    lockAspectRatio: false,
+  },
+];
+
 export default function CompressionControls({ 
   settings, 
   onSettingsChange, 
@@ -13,6 +77,7 @@ export default function CompressionControls({
   const [widthInput, setWidthInput] = useState(settings.maxWidth || '');
   const [heightInput, setHeightInput] = useState(settings.maxHeight || '');
   const [targetSizeInput, setTargetSizeInput] = useState(settings.targetSizeKB || '');
+  const [activePreset, setActivePreset] = useState(null);
 
   // Sync local state when settings change externally
   useEffect(() => {
@@ -21,7 +86,23 @@ export default function CompressionControls({
     setTargetSizeInput(settings.targetSizeKB || '');
   }, [settings.maxWidth, settings.maxHeight, settings.targetSizeKB]);
 
+  const applyPreset = (preset) => {
+    setActivePreset(preset.id);
+    setWidthInput(preset.maxWidth || '');
+    setHeightInput(preset.maxHeight || '');
+    setTargetSizeInput(preset.targetSizeKB || '');
+    onSettingsChange({
+      ...settings,
+      mode: preset.mode,
+      targetSizeKB: preset.targetSizeKB,
+      maxWidth: preset.maxWidth,
+      maxHeight: preset.maxHeight,
+      lockAspectRatio: preset.lockAspectRatio,
+    });
+  };
+
   const handleWidthChange = (value) => {
+    setActivePreset(null); // Clear preset when manually changing
     const numValue = value === '' ? null : parseInt(value);
     setWidthInput(value);
     
@@ -39,6 +120,7 @@ export default function CompressionControls({
   };
 
   const handleHeightChange = (value) => {
+    setActivePreset(null); // Clear preset when manually changing
     const numValue = value === '' ? null : parseInt(value);
     setHeightInput(value);
     
@@ -56,12 +138,14 @@ export default function CompressionControls({
   };
 
   const handleTargetSizeChange = (value) => {
+    setActivePreset(null); // Clear preset when manually changing
     const numValue = value === '' ? null : parseInt(value);
     setTargetSizeInput(value);
     onSettingsChange({ ...settings, targetSizeKB: numValue });
   };
 
   const toggleAspectRatioLock = () => {
+    setActivePreset(null);
     onSettingsChange({ 
       ...settings, 
       lockAspectRatio: !settings.lockAspectRatio 
@@ -69,6 +153,7 @@ export default function CompressionControls({
   };
 
   const clearDimensions = () => {
+    setActivePreset(null);
     setWidthInput('');
     setHeightInput('');
     onSettingsChange({ 
@@ -79,11 +164,40 @@ export default function CompressionControls({
   };
 
   const setMode = (mode) => {
+    setActivePreset(null);
     onSettingsChange({ ...settings, mode });
   };
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 space-y-4">
+      {/* Quick Presets */}
+      <div>
+        <label className="text-sm font-medium text-gray-700 block mb-2">
+          Quick Presets
+        </label>
+        <div className="grid grid-cols-2 gap-2">
+          {PRESETS.map((preset) => (
+            <button
+              key={preset.id}
+              onClick={() => applyPreset(preset)}
+              className={`py-2 px-3 text-xs font-medium rounded-lg border transition-colors text-left ${
+                activePreset === preset.id
+                  ? 'bg-blue-50 border-blue-500 text-blue-700'
+                  : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300'
+              }`}
+            >
+              <span className="mr-1">{preset.emoji}</span>
+              {preset.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div className="border-t border-gray-200 pt-2">
+        <p className="text-xs text-gray-400 text-center">or customize below</p>
+      </div>
+
       {/* Mode Toggle */}
       <div>
         <label className="text-sm font-medium text-gray-700 block mb-2">
@@ -123,6 +237,7 @@ export default function CompressionControls({
             {settings.targetSizeKB && (
               <button
                 onClick={() => {
+                  setActivePreset(null);
                   setTargetSizeInput('');
                   onSettingsChange({ ...settings, targetSizeKB: null });
                 }}
@@ -167,7 +282,10 @@ export default function CompressionControls({
             min="1"
             max="100"
             value={settings.quality}
-            onChange={(e) => onSettingsChange({ ...settings, quality: parseInt(e.target.value) })}
+            onChange={(e) => {
+              setActivePreset(null);
+              onSettingsChange({ ...settings, quality: parseInt(e.target.value) });
+            }}
             className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
           />
           <div className="flex justify-between text-xs text-gray-400 mt-1">
@@ -262,7 +380,10 @@ export default function CompressionControls({
         </label>
         <div className="flex gap-2">
           <button
-            onClick={() => onSettingsChange({ ...settings, format: 'jpeg' })}
+            onClick={() => {
+              setActivePreset(null);
+              onSettingsChange({ ...settings, format: 'jpeg' });
+            }}
             className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg border transition-colors ${
               settings.format === 'jpeg'
                 ? 'bg-blue-50 border-blue-500 text-blue-700'
@@ -272,7 +393,10 @@ export default function CompressionControls({
             JPEG
           </button>
           <button
-            onClick={() => onSettingsChange({ ...settings, format: 'webp' })}
+            onClick={() => {
+              setActivePreset(null);
+              onSettingsChange({ ...settings, format: 'webp' });
+            }}
             className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg border transition-colors ${
               settings.format === 'webp'
                 ? 'bg-blue-50 border-blue-500 text-blue-700'
