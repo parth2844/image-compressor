@@ -19,16 +19,32 @@ export default function ImageCard({ image, onRemove, onDownload }) {
           className="w-full h-full object-cover"
         />
         
-        {/* Status Badge */}
+        {/* Status Badge - Compressing with Progress */}
         {image.status === 'compressing' && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-2">
             <div className="animate-spin rounded-full h-8 w-8 border-2 border-white border-t-transparent"></div>
+            <div className="w-3/4 bg-white/30 rounded-full h-2 overflow-hidden">
+              <div 
+                className="bg-white h-full transition-all duration-200 ease-out"
+                style={{ width: `${image.progress}%` }}
+              />
+            </div>
+            <span className="text-white text-xs font-medium">{image.progress}%</span>
           </div>
         )}
         
         {image.status === 'error' && (
           <div className="absolute inset-0 bg-red-500/50 flex items-center justify-center">
             <span className="text-white text-sm font-medium">Error</span>
+          </div>
+        )}
+
+        {/* Done Checkmark */}
+        {image.status === 'done' && (
+          <div className="absolute top-2 left-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4 text-white">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+            </svg>
           </div>
         )}
         

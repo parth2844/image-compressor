@@ -8,6 +8,7 @@ import imageCompression from 'browser-image-compression';
  * @param {string} options.format - Output format ('jpeg' | 'webp')
  * @param {number|null} options.maxWidth - Max width in pixels
  * @param {number|null} options.maxHeight - Max height in pixels
+ * @param {Function} options.onProgress - Progress callback (0-100)
  * @returns {Promise<Blob>} Compressed image blob
  */
 export async function compressImage(file, options = {}) {
@@ -16,6 +17,7 @@ export async function compressImage(file, options = {}) {
     format = 'jpeg',
     maxWidth = null,
     maxHeight = null,
+    onProgress = null,
   } = options;
 
   // Calculate max dimension (use the smaller of maxWidth/maxHeight if both provided)
@@ -32,6 +34,7 @@ export async function compressImage(file, options = {}) {
     useWebWorker: true,
     fileType: format === 'webp' ? 'image/webp' : 'image/jpeg',
     initialQuality: quality / 100,
+    onProgress: onProgress ? (progress) => onProgress(Math.round(progress)) : undefined,
   };
 
   try {

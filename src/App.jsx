@@ -23,6 +23,7 @@ export default function App() {
   const [settings, setSettings] = useState({
     quality: 80,
     format: 'jpeg',
+    maxWidth: null,
   });
 
   const handleCompress = () => {

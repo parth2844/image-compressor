@@ -7,6 +7,14 @@ export default function CompressionControls({
   compressedCount,
   isCompressing 
 }) {
+  const maxWidthPresets = [
+    { label: 'No resize', value: null },
+    { label: '1920px (Full HD)', value: 1920 },
+    { label: '1280px (HD)', value: 1280 },
+    { label: '800px (Web)', value: 800 },
+    { label: '400px (Thumbnail)', value: 400 },
+  ];
+
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 space-y-4">
       {/* Quality Slider */}
@@ -32,6 +40,32 @@ export default function CompressionControls({
           <span>Smaller file</span>
           <span>Better quality</span>
         </div>
+      </div>
+
+      {/* Max Width Selector */}
+      <div>
+        <label className="text-sm font-medium text-gray-700 block mb-2">
+          Max Width
+        </label>
+        <select
+          value={settings.maxWidth || ''}
+          onChange={(e) => onSettingsChange({ 
+            ...settings, 
+            maxWidth: e.target.value ? parseInt(e.target.value) : null 
+          })}
+          className="w-full py-2 px-3 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        >
+          {maxWidthPresets.map((preset) => (
+            <option key={preset.label} value={preset.value || ''}>
+              {preset.label}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-gray-400 mt-1">
+          {settings.maxWidth 
+            ? `Images wider than ${settings.maxWidth}px will be resized`
+            : 'Images will keep original dimensions'}
+        </p>
       </div>
 
       {/* Format Selection */}

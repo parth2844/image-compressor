@@ -29,6 +29,7 @@ export function useImages() {
       compressedUrl: null,
       compressedSize: null,
       status: 'pending',
+      progress: 0,
       error: null,
     }));
 
@@ -62,6 +63,7 @@ export function useImages() {
       prev.map((img) => ({
         ...img,
         status: 'compressing',
+        progress: 0,
         compressed: null,
         compressedUrl: img.compressedUrl ? (URL.revokeObjectURL(img.compressedUrl), null) : null,
         compressedSize: null,
@@ -72,7 +74,21 @@ export function useImages() {
     // Process each image
     for (const image of images) {
       try {
-        const compressed = await compressImage(image.file, settings);
+        // Create progress callback for this specific image
+        const onProgress = (progress) => {
+          setImages((prev) =>
+            prev.map((img) =>
+              img.id === image.id
+                ? { ...img, progress }
+                : img
+            )
+          );
+        };
+
+        const compressed = await compressImage(image.file, {
+          ...settings,
+          onProgress,
+        });
         const compressedUrl = URL.createObjectURL(compressed);
 
         setImages((prev) =>
@@ -84,6 +100,7 @@ export function useImages() {
                   compressedUrl,
                   compressedSize: compressed.size,
                   status: 'done',
+                  progress: 100,
                 }
               : img
           )
@@ -95,6 +112,7 @@ export function useImages() {
               ? {
                   ...img,
                   status: 'error',
+                  progress: 0,
                   error: error.message,
                 }
               : img
