@@ -4,7 +4,9 @@ import imageCompression from 'browser-image-compression';
  * Compress a single image file
  * @param {File} file - Image file to compress
  * @param {Object} options - Compression options
- * @param {number} options.quality - Quality 1-100
+ * @param {string} options.mode - Compression mode ('targetSize' | 'quality')
+ * @param {number} options.quality - Quality 1-100 (used in quality mode)
+ * @param {number|null} options.targetSizeKB - Target file size in KB (used in targetSize mode)
  * @param {string} options.format - Output format ('jpeg' | 'webp')
  * @param {number|null} options.maxWidth - Max width in pixels
  * @param {number|null} options.maxHeight - Max height in pixels
@@ -13,7 +15,9 @@ import imageCompression from 'browser-image-compression';
  */
 export async function compressImage(file, options = {}) {
   const {
+    mode = 'quality',
     quality = 80,
+    targetSizeKB = null,
     format = 'jpeg',
     maxWidth = null,
     maxHeight = null,
@@ -28,14 +32,23 @@ export async function compressImage(file, options = {}) {
     maxWidthOrHeight = maxWidth || maxHeight;
   }
 
+  // Build compression options based on mode
   const compressionOptions = {
-    maxSizeMB: 10, // Allow up to 10MB (we control quality instead)
     maxWidthOrHeight: maxWidthOrHeight,
     useWebWorker: true,
     fileType: format === 'webp' ? 'image/webp' : 'image/jpeg',
-    initialQuality: quality / 100,
     onProgress: onProgress ? (progress) => onProgress(Math.round(progress)) : undefined,
   };
+
+  if (mode === 'targetSize' && targetSizeKB) {
+    // Target size mode: let library find optimal quality to hit target size
+    compressionOptions.maxSizeMB = targetSizeKB / 1024; // Convert KB to MB
+    // Don't set initialQuality - library will auto-iterate to find best quality
+  } else {
+    // Quality mode: use fixed quality, allow larger files
+    compressionOptions.maxSizeMB = 50; // Effectively no limit (50MB)
+    compressionOptions.initialQuality = quality / 100;
+  }
 
   try {
     const compressedFile = await imageCompression(file, compressionOptions);

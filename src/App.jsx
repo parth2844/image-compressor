@@ -21,7 +21,9 @@ export default function App() {
   } = useImages();
 
   const [settings, setSettings] = useState({
+    mode: 'targetSize', // 'targetSize' or 'quality'
     quality: 80,
+    targetSizeKB: null, // Target file size in KB
     format: 'jpeg',
     maxWidth: null,
     maxHeight: null,

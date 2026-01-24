@@ -12,12 +12,14 @@ export default function CompressionControls({
   // Local state for dimension inputs (allows empty string while typing)
   const [widthInput, setWidthInput] = useState(settings.maxWidth || '');
   const [heightInput, setHeightInput] = useState(settings.maxHeight || '');
+  const [targetSizeInput, setTargetSizeInput] = useState(settings.targetSizeKB || '');
 
   // Sync local state when settings change externally
   useEffect(() => {
     setWidthInput(settings.maxWidth || '');
     setHeightInput(settings.maxHeight || '');
-  }, [settings.maxWidth, settings.maxHeight]);
+    setTargetSizeInput(settings.targetSizeKB || '');
+  }, [settings.maxWidth, settings.maxHeight, settings.targetSizeKB]);
 
   const handleWidthChange = (value) => {
     const numValue = value === '' ? null : parseInt(value);
@@ -53,6 +55,12 @@ export default function CompressionControls({
     }
   };
 
+  const handleTargetSizeChange = (value) => {
+    const numValue = value === '' ? null : parseInt(value);
+    setTargetSizeInput(value);
+    onSettingsChange({ ...settings, targetSizeKB: numValue });
+  };
+
   const toggleAspectRatioLock = () => {
     onSettingsChange({ 
       ...settings, 
@@ -70,38 +78,110 @@ export default function CompressionControls({
     });
   };
 
+  const setMode = (mode) => {
+    onSettingsChange({ ...settings, mode });
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 space-y-4">
-      {/* Quality Slider */}
+      {/* Mode Toggle */}
       <div>
-        <div className="flex items-center justify-between mb-2">
-          <label htmlFor="quality" className="text-sm font-medium text-gray-700">
-            Quality
-          </label>
-          <span className="text-sm font-semibold text-blue-600">
-            {settings.quality}%
-          </span>
-        </div>
-        <input
-          type="range"
-          id="quality"
-          min="1"
-          max="100"
-          value={settings.quality}
-          onChange={(e) => onSettingsChange({ ...settings, quality: parseInt(e.target.value) })}
-          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-        />
-        <div className="flex justify-between text-xs text-gray-400 mt-1">
-          <span>Smaller file</span>
-          <span>Better quality</span>
+        <label className="text-sm font-medium text-gray-700 block mb-2">
+          Compression Mode
+        </label>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setMode('targetSize')}
+            className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg border transition-colors ${
+              settings.mode === 'targetSize'
+                ? 'bg-blue-50 border-blue-500 text-blue-700'
+                : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            Target Size
+          </button>
+          <button
+            onClick={() => setMode('quality')}
+            className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg border transition-colors ${
+              settings.mode === 'quality'
+                ? 'bg-blue-50 border-blue-500 text-blue-700'
+                : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            Quality %
+          </button>
         </div>
       </div>
+
+      {/* Target Size Input (shown in targetSize mode) */}
+      {settings.mode === 'targetSize' && (
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-sm font-medium text-gray-700">
+              Max File Size
+            </label>
+            {settings.targetSizeKB && (
+              <button
+                onClick={() => {
+                  setTargetSizeInput('');
+                  onSettingsChange({ ...settings, targetSizeKB: null });
+                }}
+                className="text-xs text-gray-400 hover:text-gray-600"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+          <div className="relative">
+            <input
+              type="number"
+              placeholder="500"
+              value={targetSizeInput}
+              onChange={(e) => handleTargetSizeChange(e.target.value)}
+              className="w-full py-2 px-3 pr-10 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
+              KB
+            </span>
+          </div>
+          <p className="text-xs text-gray-400 mt-1.5">
+            Quality will auto-adjust to achieve target size while preserving best possible quality
+          </p>
+        </div>
+      )}
+
+      {/* Quality Slider (shown in quality mode) */}
+      {settings.mode === 'quality' && (
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label htmlFor="quality" className="text-sm font-medium text-gray-700">
+              Quality
+            </label>
+            <span className="text-sm font-semibold text-blue-600">
+              {settings.quality}%
+            </span>
+          </div>
+          <input
+            type="range"
+            id="quality"
+            min="1"
+            max="100"
+            value={settings.quality}
+            onChange={(e) => onSettingsChange({ ...settings, quality: parseInt(e.target.value) })}
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+          />
+          <div className="flex justify-between text-xs text-gray-400 mt-1">
+            <span>Smaller file</span>
+            <span>Better quality</span>
+          </div>
+        </div>
+      )}
 
       {/* Resize Dimensions */}
       <div>
         <div className="flex items-center justify-between mb-2">
           <label className="text-sm font-medium text-gray-700">
-            Max Dimensions
+            Max Dimensions <span className="text-gray-400 font-normal">(optional)</span>
           </label>
           {(settings.maxWidth || settings.maxHeight) && (
             <button
