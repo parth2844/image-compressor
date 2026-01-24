@@ -1,3 +1,5 @@
+import { useState, useEffect } from 'react';
+
 export default function CompressionControls({ 
   settings, 
   onSettingsChange, 
@@ -7,13 +9,66 @@ export default function CompressionControls({
   compressedCount,
   isCompressing 
 }) {
-  const maxWidthPresets = [
-    { label: 'No resize', value: null },
-    { label: '1920px (Full HD)', value: 1920 },
-    { label: '1280px (HD)', value: 1280 },
-    { label: '800px (Web)', value: 800 },
-    { label: '400px (Thumbnail)', value: 400 },
-  ];
+  // Local state for dimension inputs (allows empty string while typing)
+  const [widthInput, setWidthInput] = useState(settings.maxWidth || '');
+  const [heightInput, setHeightInput] = useState(settings.maxHeight || '');
+
+  // Sync local state when settings change externally
+  useEffect(() => {
+    setWidthInput(settings.maxWidth || '');
+    setHeightInput(settings.maxHeight || '');
+  }, [settings.maxWidth, settings.maxHeight]);
+
+  const handleWidthChange = (value) => {
+    const numValue = value === '' ? null : parseInt(value);
+    setWidthInput(value);
+    
+    if (settings.lockAspectRatio && numValue && settings.aspectRatio) {
+      const newHeight = Math.round(numValue / settings.aspectRatio);
+      setHeightInput(newHeight);
+      onSettingsChange({ 
+        ...settings, 
+        maxWidth: numValue,
+        maxHeight: newHeight
+      });
+    } else {
+      onSettingsChange({ ...settings, maxWidth: numValue });
+    }
+  };
+
+  const handleHeightChange = (value) => {
+    const numValue = value === '' ? null : parseInt(value);
+    setHeightInput(value);
+    
+    if (settings.lockAspectRatio && numValue && settings.aspectRatio) {
+      const newWidth = Math.round(numValue * settings.aspectRatio);
+      setWidthInput(newWidth);
+      onSettingsChange({ 
+        ...settings, 
+        maxWidth: newWidth,
+        maxHeight: numValue
+      });
+    } else {
+      onSettingsChange({ ...settings, maxHeight: numValue });
+    }
+  };
+
+  const toggleAspectRatioLock = () => {
+    onSettingsChange({ 
+      ...settings, 
+      lockAspectRatio: !settings.lockAspectRatio 
+    });
+  };
+
+  const clearDimensions = () => {
+    setWidthInput('');
+    setHeightInput('');
+    onSettingsChange({ 
+      ...settings, 
+      maxWidth: null, 
+      maxHeight: null 
+    });
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 space-y-4">
@@ -42,29 +97,81 @@ export default function CompressionControls({
         </div>
       </div>
 
-      {/* Max Width Selector */}
+      {/* Resize Dimensions */}
       <div>
-        <label className="text-sm font-medium text-gray-700 block mb-2">
-          Max Width
-        </label>
-        <select
-          value={settings.maxWidth || ''}
-          onChange={(e) => onSettingsChange({ 
-            ...settings, 
-            maxWidth: e.target.value ? parseInt(e.target.value) : null 
-          })}
-          className="w-full py-2 px-3 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        >
-          {maxWidthPresets.map((preset) => (
-            <option key={preset.label} value={preset.value || ''}>
-              {preset.label}
-            </option>
-          ))}
-        </select>
-        <p className="text-xs text-gray-400 mt-1">
-          {settings.maxWidth 
-            ? `Images wider than ${settings.maxWidth}px will be resized`
-            : 'Images will keep original dimensions'}
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-sm font-medium text-gray-700">
+            Max Dimensions
+          </label>
+          {(settings.maxWidth || settings.maxHeight) && (
+            <button
+              onClick={clearDimensions}
+              className="text-xs text-gray-400 hover:text-gray-600"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+        
+        <div className="flex items-center gap-2">
+          {/* Width Input */}
+          <div className="flex-1">
+            <div className="relative">
+              <input
+                type="number"
+                placeholder="Width"
+                value={widthInput}
+                onChange={(e) => handleWidthChange(e.target.value)}
+                className="w-full py-2 px-3 pr-8 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
+                px
+              </span>
+            </div>
+          </div>
+
+          {/* Aspect Ratio Lock Toggle */}
+          <button
+            onClick={toggleAspectRatioLock}
+            className={`p-2 rounded-lg border transition-colors ${
+              settings.lockAspectRatio
+                ? 'bg-blue-50 border-blue-500 text-blue-600'
+                : 'bg-gray-50 border-gray-300 text-gray-400 hover:text-gray-600'
+            }`}
+            title={settings.lockAspectRatio ? 'Unlock aspect ratio' : 'Lock aspect ratio'}
+          >
+            {settings.lockAspectRatio ? (
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.181 8.68a4.503 4.503 0 011.903 6.405m-9.768-2.782L3.56 14.06a4.5 4.5 0 006.364 6.364l3.129-3.129m5.614-5.615l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.501 4.501 0 00-.146 6.187M12 12H5.25" />
+              </svg>
+            )}
+          </button>
+
+          {/* Height Input */}
+          <div className="flex-1">
+            <div className="relative">
+              <input
+                type="number"
+                placeholder="Height"
+                value={heightInput}
+                onChange={(e) => handleHeightChange(e.target.value)}
+                className="w-full py-2 px-3 pr-8 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
+                px
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <p className="text-xs text-gray-400 mt-1.5">
+          {settings.lockAspectRatio 
+            ? 'Aspect ratio locked — dimensions will scale proportionally'
+            : 'Aspect ratio unlocked — set dimensions independently'}
         </p>
       </div>
 

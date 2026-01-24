@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DropZone from './components/DropZone';
 import ImageCard from './components/ImageCard';
 import CompressionControls from './components/CompressionControls';
@@ -24,7 +24,27 @@ export default function App() {
     quality: 80,
     format: 'jpeg',
     maxWidth: null,
+    maxHeight: null,
+    lockAspectRatio: true,
+    aspectRatio: null, // Will be set from first image
   });
+
+  // Update aspect ratio when first image is added or when images are cleared
+  useEffect(() => {
+    if (images.length > 0 && !settings.aspectRatio) {
+      const img = images[0];
+      const image = new Image();
+      image.onload = () => {
+        setSettings(prev => ({
+          ...prev,
+          aspectRatio: image.width / image.height
+        }));
+      };
+      image.src = img.preview;
+    } else if (images.length === 0 && settings.aspectRatio) {
+      setSettings(prev => ({ ...prev, aspectRatio: null }));
+    }
+  }, [images.length, settings.aspectRatio]);
 
   const handleCompress = () => {
     compressAll(settings);
