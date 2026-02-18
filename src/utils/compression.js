@@ -1,6 +1,27 @@
 import imageCompression from 'browser-image-compression';
 
 /**
+ * Get the natural dimensions of an image file
+ * @param {File} file - Image file
+ * @returns {Promise<{width: number, height: number}>}
+ */
+function getImageDimensions(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve({ width: img.naturalWidth, height: img.naturalHeight });
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Failed to load image for dimension detection'));
+    };
+    img.src = url;
+  });
+}
+
+/**
  * Compress a single image file
  * @param {File} file - Image file to compress
  * @param {Object} options - Compression options
@@ -23,6 +44,9 @@ export async function compressImage(file, options = {}) {
     maxHeight = null,
     onProgress = null,
   } = options;
+
+  // Determine if user explicitly provided dimensions
+  const userSetDimensions = !!(maxWidth || maxHeight);
 
   // Calculate max dimension (use the smaller of maxWidth/maxHeight if both provided)
   let maxWidthOrHeight = undefined;
@@ -51,7 +75,47 @@ export async function compressImage(file, options = {}) {
   }
 
   try {
-    const compressedFile = await imageCompression(file, compressionOptions);
+    let compressedFile = await imageCompression(file, compressionOptions);
+
+    // Progressive dimension reduction fallback for target-size mode
+    // Only activates when user didn't set explicit dimensions and quality
+    // reduction alone wasn't enough to meet the target size
+    if (
+      mode === 'targetSize' &&
+      targetSizeKB &&
+      !userSetDimensions &&
+      compressedFile.size > targetSizeKB * 1024
+    ) {
+      const { width, height } = await getImageDimensions(file);
+      let currentMaxDim = Math.max(width, height);
+      const minDimension = 50; // Safety floor to avoid tiny images
+      const maxRetries = 10;
+      let retries = 0;
+
+      while (
+        compressedFile.size > targetSizeKB * 1024 &&
+        currentMaxDim > minDimension &&
+        retries < maxRetries
+      ) {
+        // Reduce the max dimension by 25% each iteration (preserves aspect ratio)
+        currentMaxDim = Math.round(currentMaxDim * 0.75);
+        if (currentMaxDim < minDimension) currentMaxDim = minDimension;
+
+        const retryOptions = {
+          ...compressionOptions,
+          maxWidthOrHeight: currentMaxDim,
+          // Suppress progress during retries to avoid confusing progress jumps
+          onProgress: undefined,
+        };
+
+        compressedFile = await imageCompression(file, retryOptions);
+        retries++;
+      }
+
+      // Fire final progress after retries complete
+      if (onProgress) onProgress(100);
+    }
+
     return compressedFile;
   } catch (error) {
     console.error('Compression failed:', error);

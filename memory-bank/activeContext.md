@@ -1,9 +1,19 @@
 # Active Context: Image Compressor
 
 ## Current Focus
-Core prototype complete. App is functional with compression, download, and informational UI.
+Fixed target-size-only compression bug — images now reliably hit the user's target file size even without explicit dimension settings.
 
-## Recent Changes (Session 1 - 2025-01-23)
+## Recent Changes (Session 2 - 2026-02-17)
+- Fixed bug: target-size compression without dimensions failed to meet size target
+- Added `getImageDimensions()` helper to read natural image dimensions
+- Added progressive dimension reduction fallback in `compressImage()`:
+  - First attempts quality-only compression
+  - If result still exceeds target and no user dimensions were set, progressively reduces `maxWidthOrHeight` by 25% per iteration
+  - Preserves aspect ratio (uses `maxWidthOrHeight` which scales proportionally)
+  - Safety floor at 50px, max 10 retries
+- Change is entirely in `src/utils/compression.js`
+
+## Previous Changes (Session 1 - 2025-01-23)
 - Built complete prototype from scratch
 - Created all core components:
   - `DropZone.jsx` - Drag-and-drop file upload
